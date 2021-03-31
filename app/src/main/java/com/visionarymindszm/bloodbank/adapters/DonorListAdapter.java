@@ -38,6 +38,8 @@ public class DonorListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         donorViewHolder.cardName.setText(donorsListModelList.get(position).getDonorName());
         String locatedMe = donorsListModelList.get(position).getDonorTown() +", "+ donorsListModelList.get(position).getDonorAddress();
         donorViewHolder.cardLocation.setText(locatedMe);
+        String bg = "Blood Group: "+donorsListModelList.get(position).getDonorBloodGroup();
+        donorViewHolder.blood_group_card.setText(bg);
     }
 
     @Override
@@ -47,14 +49,16 @@ public class DonorListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     public  class DonorViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        TextView cardName, cardLocation;
+        TextView cardName, cardLocation, blood_group_card;
         CardView cardDonor;
         private RecyclerViewClickListener mListener;
         public DonorViewHolder(@NonNull View itemView, RecyclerViewClickListener listener) {
             super(itemView);
             cardLocation = itemView.findViewById(R.id.cardLocation);
             cardName = itemView.findViewById(R.id.cardHospitalName);
+            blood_group_card = itemView.findViewById(R.id.blood_group_card);
             cardDonor = itemView.findViewById(R.id.cardDonor);
+
             mListener = listener;
             cardDonor.setOnClickListener(this);
         }

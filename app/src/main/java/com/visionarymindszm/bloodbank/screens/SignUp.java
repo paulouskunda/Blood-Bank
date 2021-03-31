@@ -147,8 +147,11 @@ public class SignUp extends AppCompatActivity {
                     param.put("blood_group", bloodGroupField.getText().toString());
                     param.put("province", provinceSignUp.getText().toString());
                     param.put("city", citySignUp.getText().toString());
-                    param.put("reason", whyGiveBlood.getText().toString());
-                    param.put("type_of_user", getMeThoseExtras.getStringExtra(Utils.KEY_TYPE_PASSED));
+                    if (Objects.equals(getMeThoseExtras.getStringExtra(Utils.KEY_TYPE_PASSED), Utils.KEY_RECEIVER))
+                        param.put("why_give_blood", "null");
+                    else
+                        param.put("why_give_blood", whyGiveBlood.getText().toString());
+                    param.put("user_type", getMeThoseExtras.getStringExtra(Utils.KEY_TYPE_PASSED));
                     return param;
                 }
             };

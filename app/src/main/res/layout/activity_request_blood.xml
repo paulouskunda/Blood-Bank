@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/request_layout"
     android:layout_height="match_parent"
     tools:context=".screens.RequestBlood">
 
@@ -127,6 +128,7 @@
         android:text="Send Request"
         android:textColor="#fff"
         android:padding="6dp"
+        android:onClick="onSendRequest"
         android:background="@drawable/button_design"
         app:layout_constraintEnd_toEndOf="@+id/textInputLayout5"
         app:layout_constraintHorizontal_bias="1.0"

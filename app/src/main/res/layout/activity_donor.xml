@@ -8,13 +8,15 @@
 
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/details"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:text="TextView"
+        android:text=""
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.SearchResult.Title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -28,7 +30,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/textView2"
-        app:layout_constraintStart_toStartOf="@+id/textView2"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintEnd_toEndOf="@+id/details"
+        app:layout_constraintStart_toStartOf="@+id/details"
+        app:layout_constraintTop_toBottomOf="@+id/details" />
 </androidx.constraintlayout.widget.ConstraintLayout>

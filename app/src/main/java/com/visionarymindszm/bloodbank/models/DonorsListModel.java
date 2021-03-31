@@ -19,6 +19,7 @@ public class DonorsListModel {
         this.donorPhoneNumber = donorPhoneNumber;
         this.donorEmailAddress = donorEmailAddress;
         this.donorBloodGroup = donorBloodGroup;
+        this.donorID = donorID;
     }
 
     public String getDonorName() {

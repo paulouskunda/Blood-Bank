@@ -1,15 +1,18 @@
 package com.visionarymindszm.bloodbank.screens;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -17,10 +20,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.visionarymindszm.bloodbank.R;
-import com.visionarymindszm.bloodbank.adapters.DonorListAdapter;
 import com.visionarymindszm.bloodbank.adapters.PendingAdapter;
-import com.visionarymindszm.bloodbank.models.DonorsListModel;
 import com.visionarymindszm.bloodbank.models.PendingListModel;
+import com.visionarymindszm.bloodbank.utils.SharedPreferencesManager;
 import com.visionarymindszm.bloodbank.utils.Utils;
 
 import org.json.JSONArray;
@@ -31,68 +33,288 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_ADDRESS;
-import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_BLOOD_GROUP;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_TYPE;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_USER_ID;
 
 public class PendingRequestActivity extends AppCompatActivity {
     // pending
     RecyclerView pendingRecycler;
+    RecyclerView approvedRecycler;
     List<PendingListModel> pendingListModels;
     PendingAdapter pendingAdapter;
+    List<PendingListModel> approvedListModels;
+    PendingAdapter approvedAdapter;
     private PendingAdapter.RecyclerViewClickListener mListener;
     private String TAG = "PendingRequestActivity";
     TextView number;
-
+    private SharedPreferencesManager preferencesManager;
+    private ConstraintLayout pending_layout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pending_request);
-
+        pending_layout = findViewById(R.id.pending_layout);
         pendingRecycler = findViewById(R.id.pendingRecycler);
+        preferencesManager = new SharedPreferencesManager(this);
         number = findViewById(R.id.number);
         mListener = new PendingAdapter.RecyclerViewClickListener() {
             @Override
             public void onRowClick(View view, int position) {
-             Utils.showToasterShort(getApplicationContext(),pendingListModels.get(position).getID(), 1);
+                final int inner_position = position;
+             Utils.showToasterShort(getApplicationContext(),pendingListModels.get(inner_position).getID(), 1);
+                AlertDialog.Builder dialog = new  AlertDialog.Builder(
+                        PendingRequestActivity.this);
+                View innerView = LayoutInflater.from(PendingRequestActivity.this).inflate(R.layout.dialog_options, null);
+                TextView name_of_requester = innerView.findViewById(R.id.name_passed);
+                Button reject_button = innerView.findViewById(R.id.reject_button);
+                Button accept_button = innerView.findViewById(R.id.accept_button);
+                name_of_requester.setText(pendingListModels.get(position).getName());
+
+                reject_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        response_to_server(pendingListModels.get(inner_position).getID(), "rejected");
+                    }
+                });
+
+                accept_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        response_to_server(pendingListModels.get(inner_position).getID(), "accepted");
+                    }
+                });
+
             }
         };
 
-        loadRecycler();
+        if (Objects.requireNonNull(preferencesManager.userDetails()
+                .get(KEY_TYPE)).equalsIgnoreCase("donor")){
+            loadDonorsFromServer();
+        }else {
+            loadWaitingReceivers();
+        }
     }
 
-    private void loadRecycler() {
+    private void response_to_server(final String id, final String status) {
+        Log.d(TAG, "ID CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
+        // volley
         pendingRecycler.setLayoutManager(new LinearLayoutManager(this));
         pendingListModels = new ArrayList<>();
-        pendingListModels.add(new PendingListModel("1", "Wainting", "Paulous Kunda", "Ndola Central","12/03/2021","I need the freaking blood man","donor"));
-        pendingListModels.add(new PendingListModel("2", "Wainting", "Kasolo Mambwe", "Ndola Central","12/03/2021","I need the freaking blood man","donor"));
-
-        number.setTextColor(Color.GREEN);
-        String setMe = "You have "+pendingListModels.size()+" pending approvals";
-        number.setText(setMe);
-        pendingAdapter = new PendingAdapter(pendingListModels, mListener);
-        pendingAdapter.notifyDataSetChanged();
-        pendingRecycler.setAdapter(pendingAdapter);
-    }
-
-    private void loadDonorsFromServer(){
-        // volley
-
-        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.HOSPITAL_NEAR_ME,
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.WAITING_LIST_DONOR,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         try{
                             JSONObject donorsNearMe = new JSONObject(response);
-                            if (donorsNearMe.optString("error").equals("false")){
-                                JSONArray readArray = donorsNearMe.getJSONArray("message");
+
+                            if (donorsNearMe.length() > 0){
+                                if (donorsNearMe.optString("error").equals("false")){
+                                    Utils.showSnackBar("Request was "+status,pending_layout, 0);
+
+                                }else {
+                                    Utils.showSnackBar("Request encountered an error",pending_layout, 0);
+                                    Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
+                                }
+                            }
+                        }catch (JSONException error){
+                            Log.d(TAG, "Encountered an error "+error);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "ERR: "+error);
+            }
+        }){
+            @Override
+            public Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+//                params.put("requesting_id", preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("req_id",  id);
+                params.put("status", status);
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+
+    private void loadDonorsFromServer(){
+        Log.d(TAG, "ID CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
+        // volley
+        pendingRecycler.setLayoutManager(new LinearLayoutManager(this));
+        pendingListModels = new ArrayList<>();
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.WAITING_LIST_DONOR,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try{
+                            JSONObject donorsNearMe = new JSONObject(response);
+
+                            if (donorsNearMe.length() > 0){
+                                if (donorsNearMe.optString("error").equals("false")){
+                                    JSONArray readArray = donorsNearMe.getJSONArray("message");
+                                    Log.d(TAG,"You have "+readArray.length()+" pending approvals" );
+
+                                    String setMe = "You have "+readArray.length()+" pending approvals";
+                                    number.setText(setMe);
+
+                                    for (int i =0;i<readArray.length(); i++){
+                                        JSONObject getData = readArray.getJSONObject(i);
+
+                                        pendingListModels.add(new PendingListModel(
+                                                getData.getString("req_id"),
+                                                "Waiting",
+                                                getData.getString("name"),
+                                                getData.getString("requested_hosp"),
+                                                getData.getString("request_date"),
+                                                getData.getString("reasonForBlood"),
+                                                preferencesManager.userDetails().get(KEY_TYPE)));
+                                    }
+                                    pendingAdapter = new PendingAdapter(pendingListModels, mListener);
+                                    pendingAdapter.notifyDataSetChanged();
+                                    pendingRecycler.setAdapter(pendingAdapter);
+                                }else {
+                                    String setMe = "You have 0 pending approvals";
+                                    number.setText(setMe);
+                                    Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
+                                }
+                            }
+                        }catch (JSONException error){
+                            Log.d(TAG, "Encountered an error "+error);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "ERR: "+error);
+            }
+        }){
+            @Override
+            public Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+//                params.put("requesting_id", preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("requesting_id",  preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("status", "waiting");
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
 
 
-                                for (int i =0;i<readArray.length(); i++){
-                                    JSONObject getData = readArray.getJSONObject(i);
-//                                    donorsListModelList.add(new DonorsListModel(getData.getString("id"), getData.getString("name"),
-//                                            getData.getString("address"), getData.getString("town"), getData.getString("phone"),
-//                                            getData.getString("email"), getData.getString("blood_group")));
+    private void loadWaitingReceivers(){
+        Log.d(TAG, "ID CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
+        // volley
+        pendingRecycler.setLayoutManager(new LinearLayoutManager(this));
+        pendingListModels = new ArrayList<>();
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.WAITING_LIST,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try{
+                            JSONObject donorsNearMe = new JSONObject(response);
+
+                            if (donorsNearMe.length() > 0){
+                                if (donorsNearMe.optString("error").equals("false")){
+                                    JSONArray readArray = donorsNearMe.getJSONArray("message");
+                                    Log.d(TAG,"You have "+readArray.length()+" pending approvals" );
+
+                                    String setMe = "You have "+readArray.length()+" pending approvals";
+                                    number.setText(setMe);
+
+                                    for (int i =0;i<readArray.length(); i++){
+                                        JSONObject getData = readArray.getJSONObject(i);
+
+                                        pendingListModels.add(new PendingListModel(
+                                                getData.getString("req_id"),
+                                                "Waiting",
+                                                getData.getString("name"),
+                                                getData.getString("requested_hosp"),
+                                                getData.getString("request_date"),
+                                                getData.getString("reasonForBlood"),
+                                                preferencesManager.userDetails().get(KEY_TYPE)));
+                                    }
+                                    pendingAdapter = new PendingAdapter(pendingListModels, mListener);
+                                    pendingAdapter.notifyDataSetChanged();
+                                    pendingRecycler.setAdapter(pendingAdapter);
+                                }else {
+                                    String setMe = "You have 0 pending approvals";
+                                    number.setText(setMe);
+                                    Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
+                                }
+                            }
+                        }catch (JSONException error){
+                            Log.d(TAG, "Encountered an error "+error);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "ERR: "+error);
+            }
+        }){
+            @Override
+            public Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+//                params.put("requesting_id", preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("requesting_id",  preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("status", "waiting");
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+
+
+    private void approvedRequest(){
+        Log.d(TAG, "ID CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
+        // volley
+        pendingRecycler.setLayoutManager(new LinearLayoutManager(this));
+        pendingListModels = new ArrayList<>();
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.APPROVE_BLOOD,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try{
+                            JSONObject donorsNearMe = new JSONObject(response);
+
+                            if (donorsNearMe.length() > 0){
+                                if (donorsNearMe.optString("error").equals("false")){
+                                    JSONArray readArray = donorsNearMe.getJSONArray("message");
+                                    Log.d(TAG,"You have "+readArray.length()+" approved requests" );
+
+                                    String setMe = "You have "+readArray.length()+" approved requests";
+                                    number.setText(setMe);
+
+                                    for (int i =0;i<readArray.length(); i++){
+                                        JSONObject getData = readArray.getJSONObject(i);
+
+                                        pendingListModels.add(new PendingListModel(
+                                                getData.getString("req_id"),
+                                                "Waiting",
+                                                getData.getString("name"),
+                                                getData.getString("requested_hosp"),
+                                                getData.getString("request_date"),
+                                                getData.getString("reasonForBlood"),
+                                                getData.getString("type_of_user")));
+
+                                    }
+
+                                    pendingAdapter = new PendingAdapter(pendingListModels, mListener);
+                                    pendingAdapter.notifyDataSetChanged();
+                                    pendingRecycler.setAdapter(pendingAdapter);
+                                }else {
+                                    String setMe = "You have 0 pending approvals";
+                                    number.setText(setMe);
+                                    Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
                                 }
                             }
 
@@ -105,14 +327,15 @@ public class PendingRequestActivity extends AppCompatActivity {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
+                Log.d(TAG, "ERR: "+error);
             }
         }){
             @Override
             public Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-//                params.put("city", preferencesManager.userDetails().get(KEY_ADDRESS));
-//                params.put("blood_group", preferencesManager.userDetails().get(KEY_BLOOD_GROUP));
+//                params.put("requesting_id", preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("requesting_id", "1");
+                params.put("status", "waiting");
                 return params;
             }
         };
@@ -120,4 +343,5 @@ public class PendingRequestActivity extends AppCompatActivity {
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(stringRequest);
     }
+
 }

@@ -58,6 +58,7 @@ public class ViewOneDonor extends AppCompatActivity {
         bookBloodDonation.putExtra(Utils.DONOR_NAME, getDonor.getStringExtra(Utils.DONOR_NAME));
         bookBloodDonation.putExtra(Utils.DONOR_BLOOD_GROUP, getDonor.getStringExtra(Utils.DONOR_BLOOD_GROUP));
         bookBloodDonation.putExtra(Utils.DONOR_TOWN, getDonor.getStringExtra(Utils.DONOR_TOWN));
+        bookBloodDonation.putExtra(Utils.DONOR_ID, getDonor.getStringExtra(Utils.DONOR_ID));
         startActivity(bookBloodDonation);
     }
 }

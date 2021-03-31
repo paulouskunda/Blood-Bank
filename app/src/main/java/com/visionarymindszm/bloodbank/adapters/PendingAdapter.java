@@ -39,7 +39,7 @@ public class PendingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         pendingViewHolder.receiver_name.setText(pendingListModels.get(position).getName());
         pendingViewHolder.hospitalName.setText(pendingListModels.get(position).getHospital());
         pendingViewHolder.status.setText("Status "+pendingListModels.get(position).getApprovalStatus());
-        pendingViewHolder.reasonForBloodRequest.setText(pendingListModels.get(position).getReasonOfBlood());
+        pendingViewHolder.reasonForBloodRequest.setText(pendingListModels.get(position).getUserType());
         if (Objects.equals(pendingListModels.get(position).getUserType(), "receiver")){
             pendingViewHolder.takeAction.setVisibility(View.GONE);
         }

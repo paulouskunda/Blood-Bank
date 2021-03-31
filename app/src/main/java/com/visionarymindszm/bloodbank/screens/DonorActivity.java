@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -28,9 +29,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_ADDRESS;
-import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_BLOOD_GROUP;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_CITY;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_TYPE;
 
 public class DonorActivity extends AppCompatActivity {
     RecyclerView donorListRecycler;
@@ -39,12 +41,18 @@ public class DonorActivity extends AppCompatActivity {
     private DonorListAdapter.RecyclerViewClickListener mListener;
     private String TAG = "DonorActivity";
     SharedPreferencesManager preferencesManager;
+    private TextView details;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_donor);
         preferencesManager = new SharedPreferencesManager(this);
         donorListRecycler = findViewById(R.id.donorListRecycler);
+        donorsListModelList = new ArrayList<>();
+        details = findViewById(R.id.details);
+
+
+
         mListener = new DonorListAdapter.RecyclerViewClickListener() {
             @Override
             public void onRowClick(View view, int position) {
@@ -54,33 +62,26 @@ public class DonorActivity extends AppCompatActivity {
                 getOneDonor.putExtra(Utils.DONOR_PHONE_NUMBER, donorsListModelList.get(position).getDonorPhoneNumber());
                 getOneDonor.putExtra(Utils.DONOR_EMAIL, donorsListModelList.get(position).getDonorEmailAddress());
                 getOneDonor.putExtra(Utils.DONOR_ID, donorsListModelList.get(position).getDonorID());
+                Log.d(TAG, donorsListModelList.get(position).getDonorID());
                 getOneDonor.putExtra(Utils.DONOR_ADDRESS, donorsListModelList.get(position).getDonorAddress());
                 getOneDonor.putExtra(Utils.DONOR_TOWN, donorsListModelList.get(position).getDonorTown());
                 startActivity(getOneDonor);
             }
         };
 
-        loadRecycler();
+        loadDonorsFromServer();
     }
 
-    private void loadRecycler() {
-        donorListRecycler.setLayoutManager(new LinearLayoutManager(this));
-        donorsListModelList = new ArrayList<>();
-        donorsListModelList.add(new DonorsListModel("1","Paul Kunda", "New Mushili", "Ndola",
-                "0972157418", "pkunda24@gmail.com", "O"));
-        donorsListModelList.add(new DonorsListModel("2","Kasolo Mambwe", "Matero", "Lusaka",
-                "0972157418", "kasolo@gmail.com", "A"));
 
-        donorListAdapter = new DonorListAdapter(donorsListModelList, mListener);
-        donorListAdapter.notifyDataSetChanged();
-        donorListRecycler.setAdapter(donorListAdapter);
 
-    }
+
 
     private void loadDonorsFromServer(){
         // volley
-
-        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.HOSPITAL_NEAR_ME,
+        donorListRecycler.setLayoutManager(new LinearLayoutManager(this));
+        String setMeUp = "Based on your City "+preferencesManager.userDetails().get(KEY_CITY);
+        details.setText(setMeUp);
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.DONOR_LIST,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -92,12 +93,23 @@ public class DonorActivity extends AppCompatActivity {
 
                                 for (int i =0;i<readArray.length(); i++){
                                     JSONObject getData = readArray.getJSONObject(i);
-                                    donorsListModelList.add(new DonorsListModel(getData.getString("id"), getData.getString("name"),
-                                            getData.getString("address"), getData.getString("town"), getData.getString("phone"),
-                                            getData.getString("email"), getData.getString("blood_group")));
+                                    donorsListModelList.add(new DonorsListModel(
+                                            getData.getString("id"),
+                                            getData.getString("name"),
+                                            getData.getString("physical_address"),
+                                            getData.getString("city"),
+                                            getData.getString("phone_number"),
+                                            getData.getString("email"),
+                                            getData.getString("blood_group")));
+                                    Log.d(TAG, ""+donorsListModelList);
+                                    Log.d(TAG, ""+ getData.getString("id"));
                                 }
-                            }
 
+                                donorListAdapter = new DonorListAdapter(donorsListModelList, mListener);
+                                donorListAdapter.notifyDataSetChanged();
+                                donorListRecycler.setAdapter(donorListAdapter);
+
+                            }
 
                         }catch (JSONException error){
                             Log.d(TAG, "Encountered an error "+error);
@@ -107,14 +119,14 @@ public class DonorActivity extends AppCompatActivity {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "Encountered an error "+error);
 
             }
         }){
             @Override
             public Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("city", preferencesManager.userDetails().get(KEY_ADDRESS));
-                params.put("blood_group", preferencesManager.userDetails().get(KEY_BLOOD_GROUP));
+                params.put("city","ndola");
                 return params;
             }
         };
@@ -122,4 +134,5 @@ public class DonorActivity extends AppCompatActivity {
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(stringRequest);
     }
+
 }

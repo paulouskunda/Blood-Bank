@@ -36,6 +36,7 @@ import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_PHONE_NUMBER;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_TYPE;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_USERNAME;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_USER_ID;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -69,7 +70,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void loginMeIn(View view) {
-        startActivity(new Intent(this, MainScreenActivity.class));
+
+        loginFunction();
+//        startActivity(new Intent(this, MainScreenActivity.class));
     }
 
     private void loginFunction(){
@@ -88,26 +91,32 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(String response) {
                             try {
+                                Utils.showToasterShort(LoginActivity.this,"we", 0 );
+
                                 JSONObject loginObject = new JSONObject(response);
 
                                 if (loginObject.optString("error").equals("false")){
-                                    JSONArray loginResults = loginObject.getJSONArray("message");
-                                    HashMap<String, String> userDetails = new HashMap<>();
-                                    for (int i = 0; i < loginResults.length(); i++){
-                                        JSONObject messagePicked = loginResults.getJSONObject(i);
-                                        userDetails.put(KEY_ADDRESS, messagePicked.getString("address"));
-                                        userDetails.put(KEY_BLOOD_GROUP,messagePicked.getString("blood_group"));
-                                        userDetails.put(KEY_EMAIL, messagePicked.getString("email"));
-                                        userDetails.put(KEY_USERNAME, messagePicked.getString("name"));
-                                        userDetails.put(KEY_CITY, messagePicked.getString("city"));
-                                        userDetails.put(KEY_PHONE_NUMBER, messagePicked.getString("phone"));
-                                        userDetails.put(KEY_TYPE, messagePicked.getString("type"));
-                                    }
+                                    Utils.showToasterShort(LoginActivity.this,"lol", 0 );
 
+                                    JSONObject messagePicked =  new JSONObject(String.valueOf(loginObject.getJSONObject("message")));
+                                    HashMap<String, String> userDetails = new HashMap<>();
+
+                                    userDetails.put(KEY_ADDRESS, messagePicked.getString("physical_address"));
+                                    userDetails.put(KEY_BLOOD_GROUP,messagePicked.getString("blood_group"));
+                                    userDetails.put(KEY_EMAIL, messagePicked.getString("email"));
+                                    userDetails.put(KEY_USERNAME, messagePicked.getString("name"));
+                                    userDetails.put(KEY_CITY, messagePicked.getString("city"));
+                                    userDetails.put(KEY_PHONE_NUMBER, messagePicked.getString("phone_number"));
+                                    userDetails.put(KEY_TYPE, messagePicked.getString("type_of_user"));
+                                    userDetails.put(KEY_USER_ID, messagePicked.getString("id"));
+                                    Log.d(TAG, ""+userDetails.get(KEY_CITY));
 
                                     preferencesManager.createUserLoginPref(userDetails);
                                     startActivity(new Intent(LoginActivity.this, MainScreenActivity.class));
                                     finish();
+                                }else {
+                                    Utils.showSnackBar(loginObject.getString("message"),login_layout, -1 );
+
                                 }
                             }catch (JSONException error){
                                 Log.d(TAG, "Error: "+error);

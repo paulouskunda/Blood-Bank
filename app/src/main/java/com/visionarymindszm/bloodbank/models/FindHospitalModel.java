@@ -6,13 +6,26 @@ public class FindHospitalModel {
     private String hospitalAddress;
     private String hospitalLat;
     private String hospitalLong;
+    private String hospitalCity;
+    private String hospitalLocation;
 
-    public FindHospitalModel(String hospitalID, String hospitalName, String hospitalAddress, String hospitalLat, String hospitalLong) {
+
+    public FindHospitalModel(String hospitalID, String hospitalName, String hospitalAddress, String hospitalLat, String hospitalLong, String hospitalCity, String hospitalLocation) {
         this.hospitalID = hospitalID;
         this.hospitalName = hospitalName;
         this.hospitalAddress = hospitalAddress;
         this.hospitalLat = hospitalLat;
         this.hospitalLong = hospitalLong;
+        this.hospitalCity = hospitalCity;
+        this.hospitalLocation = hospitalLocation;
+    }
+
+    public String getHospitalCity() {
+        return hospitalCity;
+    }
+
+    public String getHospitalLocation() {
+        return hospitalLocation;
     }
 
     public String getHospitalID() {

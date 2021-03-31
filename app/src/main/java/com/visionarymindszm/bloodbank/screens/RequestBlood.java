@@ -2,6 +2,7 @@ package com.visionarymindszm.bloodbank.screens;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
@@ -35,6 +36,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_ADDRESS;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_BLOOD_GROUP;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_CITY;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_USER_ID;
 
 public class RequestBlood extends AppCompatActivity {
     private TextView nameRequest, bloodGroupRequest, townOriginRequest;
@@ -48,6 +52,7 @@ public class RequestBlood extends AppCompatActivity {
     int year;
     private String TAG = "RequestBloodActivity";
     Intent getData ;
+    private ConstraintLayout request_layout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +71,7 @@ public class RequestBlood extends AppCompatActivity {
         townOriginRequest = findViewById(R.id.townOriginRequest);
         select_hospital = findViewById(R.id.select_hospital);
         dateForRequest = findViewById(R.id.dateForRequest);
-
+        request_layout = findViewById(R.id.request_layout);
 
     }
 
@@ -114,7 +119,22 @@ public class RequestBlood extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        try {
+                            JSONObject donorsNearMe = new JSONObject(response);
+                            if (donorsNearMe.optString("error").equals("false")) {
+                                Utils.showToasterShort(RequestBlood.this, "Request Sent", 1);
+//                                startActivity(new Intent());
+//                                finish();
+                            }else{
+                                Utils.showToasterShort(RequestBlood.this,
+                                        "Request Failed, try again later", 1);
+                                Log.d(TAG, donorsNearMe.getString("message"));
+                            }
+                        }catch (JSONException error){
+                            Log.d(TAG, "Err "+error);
+                            Utils.showSnackBar("Error", request_layout, 0);
 
+                        }
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -125,7 +145,13 @@ public class RequestBlood extends AppCompatActivity {
             @Override
             public Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-
+                params.put("requesting_id",preferencesManager.userDetails().get(KEY_USER_ID) );
+                params.put("requester_id",getData.getStringExtra(Utils.DONOR_ID) );
+                params.put("request_blood_group", bloodGroupRequest.getText().toString());
+                params.put("requested_hosp",select_hospital.getText().toString() );
+                params.put("request_status","waiting" );
+                params.put("request_date",dateForRequest.getText().toString() );
+                params.put("requested_city",townOriginRequest.getText().toString() );
                 return params;
             }
         };
@@ -150,7 +176,7 @@ public class RequestBlood extends AppCompatActivity {
 
                                 for (int i =0;i<readArray.length(); i++){
                                     JSONObject getData = readArray.getJSONObject(i);
-                                    hospitalsList[i] = getData.getString("hospital");
+                                    hospitalsList[i] = getData.getString("hosp_name");
                                 }
                             }
 
@@ -169,12 +195,16 @@ public class RequestBlood extends AppCompatActivity {
             @Override
             public Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("city", preferencesManager.userDetails().get(KEY_ADDRESS));
+                params.put("city", preferencesManager.userDetails().get(KEY_CITY));
                 return params;
             }
         };
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(stringRequest);
+    }
+
+    public void onSendRequest(View view) {
+        sendDataToServer();
     }
 }
