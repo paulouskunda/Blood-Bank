@@ -8,35 +8,6 @@
     tools:context=".MainActivity"
     android:background="@color/colorWhite">
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BLOOD"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="@color/colorPrimary"
-            android:textSize="30dp" />
-
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="3dp"
-            android:text="BANK"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="@color/colorGray"
-            android:textSize="30dp" />
-    </LinearLayout>
 
     <ImageView
         android:id="@+id/imageView"
@@ -44,7 +15,7 @@
         android:layout_height="373dp"
         android:layout_above="@+id/linearLayout2"
         android:layout_below="@+id/linearLayout"
-        android:layout_marginTop="64dp"
+        android:layout_marginTop="8dp"
         android:foregroundGravity="center"
         android:src="@drawable/banner"
         app:layout_constraintEnd_toEndOf="parent"
@@ -139,7 +110,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_weight="0.5"
-        android:text="New here? Click one of the buttons below to sign up..."
+        android:text="@string/note_"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginButton" />

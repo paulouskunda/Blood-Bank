@@ -7,9 +7,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
@@ -40,7 +42,8 @@ public class MainScreenActivity extends AppCompatActivity {
     CardView donorList;
     private   SharedPreferencesManager sharedPreferencesManager;
     private static final String TAG = "MainScreenActivity";
-    private TextView notificationBloodRequest;
+    private TextView notificationBloodRequest, donorList_orDonate;
+    private ImageView donateLogo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,9 +52,12 @@ public class MainScreenActivity extends AppCompatActivity {
         main_screen_layout = findViewById(R.id.main_screen_layout);
         donorList = findViewById(R.id.donorList);
         notificationBloodRequest = findViewById(R.id.notificationBloodRequest);
-
+        donorList_orDonate = findViewById(R.id.donorList_orDonate);
+        donateLogo = findViewById(R.id.donateLogo);
         if (Objects.equals(sharedPreferencesManager.userDetails().get(KEY_TYPE), "donor")){
-            donorList.setVisibility(View.GONE);
+//            donorList.setVisibility(View.GONE);
+            String g="Donate Blood";
+            donorList_orDonate.setText(g);
         }
         pendingCount();
 
@@ -72,11 +78,16 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
     public void onDonorList(View view) {
-        startActivity(new Intent(this, DonorActivity.class));
+        if (Objects.equals(sharedPreferencesManager.userDetails().get(KEY_TYPE), "donor"))
+            startActivity(new Intent(this, DonateBlood.class));
+        else
+            startActivity(new Intent(this, DonorActivity.class));
+
     }
 
     public void onLogout(View view) {
         sharedPreferencesManager.logoutUser();
+        finish();
     }
 
     private void pendingCount(){

@@ -1,6 +1,5 @@
 package com.visionarymindszm.bloodbank.screens;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -57,6 +56,7 @@ public class PendingRequestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pending_request);
         pending_layout = findViewById(R.id.pending_layout);
         pendingRecycler = findViewById(R.id.pendingRecycler);
+        approvedRecycler = findViewById(R.id.approvedRecycler);
         preferencesManager = new SharedPreferencesManager(this);
         number = findViewById(R.id.number);
         mListener = new PendingAdapter.RecyclerViewClickListener() {
@@ -64,9 +64,12 @@ public class PendingRequestActivity extends AppCompatActivity {
             public void onRowClick(View view, int position) {
                 final int inner_position = position;
              Utils.showToasterShort(getApplicationContext(),pendingListModels.get(inner_position).getID(), 1);
-                AlertDialog.Builder dialog = new  AlertDialog.Builder(
+                final AlertDialog.Builder dialog = new  AlertDialog.Builder(
                         PendingRequestActivity.this);
                 View innerView = LayoutInflater.from(PendingRequestActivity.this).inflate(R.layout.dialog_options, null);
+                dialog.setView(innerView)
+                        .setCancelable(true)
+                        .create();
                 TextView name_of_requester = innerView.findViewById(R.id.name_passed);
                 Button reject_button = innerView.findViewById(R.id.reject_button);
                 Button accept_button = innerView.findViewById(R.id.accept_button);
@@ -76,6 +79,7 @@ public class PendingRequestActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         response_to_server(pendingListModels.get(inner_position).getID(), "rejected");
+
                     }
                 });
 
@@ -85,15 +89,18 @@ public class PendingRequestActivity extends AppCompatActivity {
                         response_to_server(pendingListModels.get(inner_position).getID(), "accepted");
                     }
                 });
-
+                dialog.show();
             }
         };
 
         if (Objects.requireNonNull(preferencesManager.userDetails()
                 .get(KEY_TYPE)).equalsIgnoreCase("donor")){
             loadDonorsFromServer();
+            approvedRequestDonor();
+
         }else {
             loadWaitingReceivers();
+            approvedRequestReceiver();
         }
     }
 
@@ -102,7 +109,7 @@ public class PendingRequestActivity extends AppCompatActivity {
         // volley
         pendingRecycler.setLayoutManager(new LinearLayoutManager(this));
         pendingListModels = new ArrayList<>();
-        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.WAITING_LIST_DONOR,
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.ACCEPT_REJECT,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -113,8 +120,28 @@ public class PendingRequestActivity extends AppCompatActivity {
                                 if (donorsNearMe.optString("error").equals("false")){
                                     Utils.showSnackBar("Request was "+status,pending_layout, 0);
 
+                                    if (Objects.requireNonNull(preferencesManager.userDetails()
+                                            .get(KEY_TYPE)).equalsIgnoreCase("donor")){
+                                        loadDonorsFromServer();
+                                        approvedRequestDonor();
+
+                                    }else {
+                                        loadWaitingReceivers();
+                                        approvedRequestReceiver();
+
+                                    }
+
                                 }else {
                                     Utils.showSnackBar("Request encountered an error",pending_layout, 0);
+                                    if (Objects.requireNonNull(preferencesManager.userDetails()
+                                            .get(KEY_TYPE)).equalsIgnoreCase("donor")){
+                                        loadDonorsFromServer();
+                                        approvedRequestDonor();
+                                    }else {
+                                        loadWaitingReceivers();
+                                        approvedRequestReceiver();
+
+                                    }
                                     Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
                                 }
                             }
@@ -209,7 +236,7 @@ public class PendingRequestActivity extends AppCompatActivity {
 
 
     private void loadWaitingReceivers(){
-        Log.d(TAG, "ID CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
+        Log.d(TAG, "ID Waiting Receiver CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
         // volley
         pendingRecycler.setLayoutManager(new LinearLayoutManager(this));
         pendingListModels = new ArrayList<>();
@@ -246,7 +273,7 @@ public class PendingRequestActivity extends AppCompatActivity {
                                 }else {
                                     String setMe = "You have 0 pending approvals";
                                     number.setText(setMe);
-                                    Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
+                                    Log.d(TAG, "Receiver "+donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
                                 }
                             }
                         }catch (JSONException error){
@@ -273,13 +300,12 @@ public class PendingRequestActivity extends AppCompatActivity {
         requestQueue.add(stringRequest);
     }
 
-
-    private void approvedRequest(){
-        Log.d(TAG, "ID CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
+    private void approvedRequestReceiver(){
+        Log.d(TAG, "ID APPROVED CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
         // volley
-        pendingRecycler.setLayoutManager(new LinearLayoutManager(this));
-        pendingListModels = new ArrayList<>();
-        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.APPROVE_BLOOD,
+        approvedRecycler.setLayoutManager(new LinearLayoutManager(this));
+        approvedListModels = new ArrayList<>();
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.APPROVED_BLOOD,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -292,14 +318,14 @@ public class PendingRequestActivity extends AppCompatActivity {
                                     Log.d(TAG,"You have "+readArray.length()+" approved requests" );
 
                                     String setMe = "You have "+readArray.length()+" approved requests";
-                                    number.setText(setMe);
+//                                    number.setText(setMe);
 
                                     for (int i =0;i<readArray.length(); i++){
                                         JSONObject getData = readArray.getJSONObject(i);
-
-                                        pendingListModels.add(new PendingListModel(
+                                        Log.d(TAG, "Message "+readArray);
+                                        approvedListModels.add(new PendingListModel(
                                                 getData.getString("req_id"),
-                                                "Waiting",
+                                                getData.getString("request_status"),
                                                 getData.getString("name"),
                                                 getData.getString("requested_hosp"),
                                                 getData.getString("request_date"),
@@ -308,12 +334,76 @@ public class PendingRequestActivity extends AppCompatActivity {
 
                                     }
 
-                                    pendingAdapter = new PendingAdapter(pendingListModels, mListener);
-                                    pendingAdapter.notifyDataSetChanged();
-                                    pendingRecycler.setAdapter(pendingAdapter);
+                                    approvedAdapter = new PendingAdapter(approvedListModels, mListener);
+                                    approvedAdapter.notifyDataSetChanged();
+                                    approvedRecycler.setAdapter(approvedAdapter);
                                 }else {
-                                    String setMe = "You have 0 pending approvals";
-                                    number.setText(setMe);
+//                                    String setMe = "You have 0 Accepted/Rejected approvals";
+//                                    number.setText(setMe);
+                                    Log.d(TAG, "Error no approval "+donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
+                                }
+                            }
+
+
+                        }catch (JSONException error){
+                            Log.d(TAG, "Encountered an error @approval-Receiver "+error);
+
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "ERR: "+error);
+            }
+        }){
+            @Override
+            public Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("requesting_id", preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("status", "accepted");
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+    private void approvedRequestDonor(){
+        Log.d(TAG, "ID CALLED => "+ preferencesManager.userDetails().get(KEY_USER_ID));
+        // volley
+        approvedRecycler.setLayoutManager(new LinearLayoutManager(this));
+        approvedListModels = new ArrayList<>();
+        StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.APPROVED_BLOOD_DONOR,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try{
+                            JSONObject donorsNearMe = new JSONObject(response);
+
+                            if (donorsNearMe.length() > 0){
+                                if (donorsNearMe.optString("error").equals("false")){
+                                    JSONArray readArray = donorsNearMe.getJSONArray("message");
+
+
+                                    for (int i =0;i<readArray.length(); i++){
+                                        JSONObject getData = readArray.getJSONObject(i);
+
+                                        approvedListModels.add(new PendingListModel(
+                                                getData.getString("req_id"),
+                                                getData.getString("request_status"),
+                                                getData.getString("name"),
+                                                getData.getString("requested_hosp"),
+                                                getData.getString("request_date"),
+                                                getData.getString("reasonForBlood"),
+                                                getData.getString("type_of_user")));
+
+                                    }
+
+                                    approvedAdapter = new PendingAdapter(approvedListModels, mListener);
+                                    approvedAdapter.notifyDataSetChanged();
+                                    approvedRecycler.setAdapter(approvedAdapter);
+                                }else {
+
                                     Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
                                 }
                             }
@@ -333,9 +423,8 @@ public class PendingRequestActivity extends AppCompatActivity {
             @Override
             public Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-//                params.put("requesting_id", preferencesManager.userDetails().get(KEY_USER_ID));
-                params.put("requesting_id", "1");
-                params.put("status", "waiting");
+                params.put("requester_id", preferencesManager.userDetails().get(KEY_USER_ID));
+                params.put("status", "accepted");
                 return params;
             }
         };

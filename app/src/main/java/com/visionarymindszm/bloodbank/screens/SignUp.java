@@ -34,6 +34,7 @@ public class SignUp extends AppCompatActivity {
     private Intent getMeThoseExtras;
     private SharedPreferencesManager preferencesManager;
     private final String TAG = "SignUpActivity";
+
 //    private
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,5 +160,10 @@ public class SignUp extends AppCompatActivity {
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(stringRequest);
 
+    }
+
+    public void onLogin(View view) {
+        startActivity(new Intent(this, LoginActivity.class));
+        finish();
     }
 }

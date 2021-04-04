@@ -20,12 +20,15 @@ public class Utils {
     public static final String DONOR_LIST = ROOT_URL+"get_donors";
     public static final String HOSPITAL_SEARCH = ROOT_URL+"";
     public static final String REQUEST_BLOOD = ROOT_URL+"request_blood";
-    public static final String APPROVE_BLOOD = ROOT_URL+"accept_reject_request";
+    public static final String ACCEPT_REJECT = ROOT_URL+"accept_reject_request";
+    public static final String APPROVED_BLOOD = ROOT_URL+"approved_requests";
+    public static final String APPROVED_BLOOD_DONOR = ROOT_URL+"approved_requests_donor";
     public static final String HOSPITAL_NEAR_ME = ROOT_URL+"get_hospital";
     public static final String HOSPITAL_NEAR_ME_COR = ROOT_URL+"get_hospital_cord";
     public static final String WAITING_LIST = ROOT_URL+"pending_requests";
     public static final String WAITING_LIST_DONOR = ROOT_URL+"pending_requests_donor";
-//    public static final String
+    public static final String GIVE_BLOOD = ROOT_URL + "giveBlood";
+    public static final String GET_BLOOD = ROOT_URL + "getGivenBlood";
 
 
     // EXTRA

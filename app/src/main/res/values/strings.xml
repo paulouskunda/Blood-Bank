@@ -7,6 +7,7 @@
     <string name="blood_group">Blood Group</string>
     <string name="phone">Phone: </string>
     <string name="reasons_for_giving_blood">Reasons for giving blood?</string>
+    <string name="note_">New here? Click one of the buttons below to sign up...</string>
 
 
     <string-array name="blood_group_arrays">

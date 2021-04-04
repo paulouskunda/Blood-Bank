@@ -16,7 +16,8 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
-        <activity android:name=".screens.PendingRequestActivity"></activity>
+        <activity android:name=".screens.DonateBlood"></activity>
+        <activity android:name=".screens.PendingRequestActivity" />
         <activity android:name=".screens.RequestBlood" />
         <activity android:name=".screens.MainScreenActivity" />
         <activity

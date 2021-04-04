@@ -126,7 +126,7 @@ public class DonorActivity extends AppCompatActivity {
             @Override
             public Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("city","ndola");
+                params.put("city",preferencesManager.userDetails().get(KEY_CITY));
                 return params;
             }
         };

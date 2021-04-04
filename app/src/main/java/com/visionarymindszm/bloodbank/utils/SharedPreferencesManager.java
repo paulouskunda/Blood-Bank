@@ -24,6 +24,9 @@ public class SharedPreferencesManager {
     public static final String KEY_ADDRESS = "address";
     public static final String KEY_EMAIL = "email";
     public static final String KEY_PHONE_NUMBER = "phone";
+    public static final String KEY_PROVINCE = "province";
+    public static final String KEY_PASSWORD = "password";
+    public static final String KEY_PHYSICAL_ADD = "physical";
 
 
     public SharedPreferencesManager(Context _context) {
@@ -36,11 +39,16 @@ public class SharedPreferencesManager {
         editor.putBoolean(KEY_IS_LOGGED, true);
 
         editor.putString(KEY_USERNAME, userMap.get(KEY_USERNAME));
+        editor.putString(KEY_EMAIL, userMap.get(KEY_EMAIL));
         editor.putString(KEY_TYPE, userMap.get(KEY_TYPE));
         editor.putString(KEY_USER_ID, userMap.get(KEY_USER_ID));
         editor.putString(KEY_CITY, userMap.get(KEY_CITY));
         editor.putString(KEY_BLOOD_GROUP, userMap.get(KEY_BLOOD_GROUP));
         editor.putString(KEY_ADDRESS, userMap.get(KEY_ADDRESS));
+        editor.putString(KEY_PHYSICAL_ADD, userMap.get(KEY_PHYSICAL_ADD));
+        editor.putString(KEY_PHONE_NUMBER, userMap.get(KEY_PHONE_NUMBER));
+        editor.putString(KEY_PASSWORD, userMap.get(KEY_PASSWORD));
+        editor.putString(KEY_PROVINCE, userMap.get(KEY_PROVINCE));
 
         editor.commit();
     }
@@ -105,6 +113,11 @@ public class SharedPreferencesManager {
         userDetail.put(KEY_CITY, preferences.getString(KEY_CITY, null));
         userDetail.put(KEY_TYPE, preferences.getString(KEY_TYPE, null));
         userDetail.put(KEY_BLOOD_GROUP, preferences.getString(KEY_BLOOD_GROUP, null));
+        userDetail.put(KEY_PASSWORD, preferences.getString(KEY_PASSWORD, null));
+        userDetail.put(KEY_PROVINCE, preferences.getString(KEY_PROVINCE, null));
+        userDetail.put(KEY_EMAIL, preferences.getString(KEY_EMAIL, null));
+        userDetail.put(KEY_PHONE_NUMBER, preferences.getString(KEY_PHONE_NUMBER, null));
+        userDetail.put(KEY_PHYSICAL_ADD, preferences.getString(KEY_PHYSICAL_ADD, null));
         return userDetail;
     }
 

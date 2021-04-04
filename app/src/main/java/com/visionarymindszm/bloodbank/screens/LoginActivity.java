@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -25,6 +26,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,7 +37,10 @@ import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_BLOOD_GROUP;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_CITY;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_EMAIL;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_PASSWORD;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_PHONE_NUMBER;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_PHYSICAL_ADD;
+import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_PROVINCE;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_TYPE;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_USERNAME;
 import static com.visionarymindszm.bloodbank.utils.SharedPreferencesManager.KEY_USER_ID;
@@ -45,6 +52,7 @@ public class LoginActivity extends AppCompatActivity {
     ConstraintLayout login_layout;
     SharedPreferencesManager preferencesManager;
     private String TAG = "LoginActivity";
+    private ProgressBar progressBarLogin;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,13 +68,14 @@ public class LoginActivity extends AppCompatActivity {
         username.setText(getMe.getStringExtra("Email"));
         password.setText(getMe.getStringExtra("Password"));
 
-
     }
 
     private void init() {
         username = findViewById(R.id.username_email);
         password = findViewById(R.id.passwordLogin);
         login_layout = findViewById(R.id.login_layout);
+        progressBarLogin = findViewById(R.id.progressBarLogin);
+        progressBarLogin.setVisibility(View.INVISIBLE);
     }
 
     public void loginMeIn(View view) {
@@ -83,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
         }else{
             final String usernamePara = username.getText().toString();
             final String passwordPara = password.getText().toString();
-
+            progressBarLogin.setVisibility(View.VISIBLE);
             // volley
 
             StringRequest stringRequest = new StringRequest(StringRequest.Method.POST, Utils.LOGIN,
@@ -91,8 +100,8 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(String response) {
                             try {
+                                progressBarLogin.setVisibility(View.INVISIBLE);
                                 Utils.showToasterShort(LoginActivity.this,"we", 0 );
-
                                 JSONObject loginObject = new JSONObject(response);
 
                                 if (loginObject.optString("error").equals("false")){
@@ -101,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
                                     JSONObject messagePicked =  new JSONObject(String.valueOf(loginObject.getJSONObject("message")));
                                     HashMap<String, String> userDetails = new HashMap<>();
 
-                                    userDetails.put(KEY_ADDRESS, messagePicked.getString("physical_address"));
+                                    userDetails.put(KEY_PHYSICAL_ADD, messagePicked.getString("physical_address"));
                                     userDetails.put(KEY_BLOOD_GROUP,messagePicked.getString("blood_group"));
                                     userDetails.put(KEY_EMAIL, messagePicked.getString("email"));
                                     userDetails.put(KEY_USERNAME, messagePicked.getString("name"));
@@ -109,19 +118,21 @@ public class LoginActivity extends AppCompatActivity {
                                     userDetails.put(KEY_PHONE_NUMBER, messagePicked.getString("phone_number"));
                                     userDetails.put(KEY_TYPE, messagePicked.getString("type_of_user"));
                                     userDetails.put(KEY_USER_ID, messagePicked.getString("id"));
+                                    userDetails.put(KEY_PROVINCE, messagePicked.getString("province"));
+                                    userDetails.put(KEY_PASSWORD, messagePicked.getString("password"));
                                     Log.d(TAG, ""+userDetails.get(KEY_CITY));
 
+                                    Log.d(TAG, "Hash "+ Collections.singletonList(userDetails));
                                     preferencesManager.createUserLoginPref(userDetails);
                                     startActivity(new Intent(LoginActivity.this, MainScreenActivity.class));
                                     finish();
                                 }else {
                                     Utils.showSnackBar(loginObject.getString("message"),login_layout, -1 );
-
                                 }
                             }catch (JSONException error){
                                 Log.d(TAG, "Error: "+error);
                                 Utils.showSnackBar("We encounter an error, try again later",login_layout, -1 );
-
+                                progressBarLogin.setVisibility(View.INVISIBLE);
                             }
                         }
                     }, new Response.ErrorListener() {
@@ -129,7 +140,7 @@ public class LoginActivity extends AppCompatActivity {
                 public void onErrorResponse(VolleyError error) {
                     Log.d(TAG, "Error: "+error);
                     Utils.showSnackBar("We encounter an error, try again later",login_layout, -1 );
-
+                    progressBarLogin.setVisibility(View.INVISIBLE);
                 }
             }){
                 @Override
@@ -142,12 +153,23 @@ public class LoginActivity extends AppCompatActivity {
                 }
             };
 
-
             RequestQueue requestQueue = Volley.newRequestQueue(this);
             requestQueue.add(stringRequest);
-
 
         }
     }
 
+    public void request_blood(View view) {
+        Intent request_blood = new Intent(this, SignUp.class);
+        request_blood.putExtra(Utils.KEY_TYPE_PASSED, Utils.KEY_RECEIVER);
+        startActivity(request_blood);
+        finish();
+    }
+
+    public void register_donor(View view) {
+        Intent register_donor = new Intent(this, SignUp.class);
+        register_donor.putExtra(Utils.KEY_TYPE_PASSED, Utils.KEY_DONOR);
+        startActivity(register_donor);
+        finish();
+    }
 }
