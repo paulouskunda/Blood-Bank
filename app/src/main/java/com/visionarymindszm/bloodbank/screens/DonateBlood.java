@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -48,11 +50,7 @@ public class DonateBlood extends AppCompatActivity {
     private EditText dateOfDonation, hospitalNearBy,reasonForDonation;
     private String[] hospitalNearYou;
     private String[] reasonOfDonation = {"Anniversary", "Felt the Need", "Others"};
-    // calendar variables
-    Calendar calendar = Calendar.getInstance();
-    int day;
-    int month;
-    int year;
+
     private String TAG = "DonateBloodActivity";
     private SharedPreferencesManager preferencesManager;
     private ProgressBar progressBarDonate;
@@ -63,7 +61,7 @@ public class DonateBlood extends AppCompatActivity {
     private ConstraintLayout donate_layout;
     private Button donateButton;
     private BottomSheetDialog bottomSheetDialog;
-
+    private TextView counterList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +70,7 @@ public class DonateBlood extends AppCompatActivity {
 
         counterRecycler = findViewById(R.id.counterRecycler);
         donate_layout = findViewById(R.id.donate_layout);
+        counterList = findViewById(R.id.counterList);
 
         getHospital();
         onLoad();
@@ -83,16 +82,18 @@ public class DonateBlood extends AppCompatActivity {
     }
 
     private void pickDate() {
-        day = calendar.get(Calendar.DAY_OF_MONTH);
-        month = calendar.get(Calendar.MONTH);
-        year = calendar.get(Calendar.YEAR);
+        // calendar variables
+        Calendar calendar = Calendar.getInstance();
+        final int day = calendar.get(Calendar.DAY_OF_MONTH);
+        final int month = calendar.get(Calendar.MONTH);
+        final int year = calendar.get(Calendar.YEAR);
 
 
         new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int yearInner, int monthInner, int dayInner) {
-                String setMeUp = ""+day+"/"+(month+1)+"/"+year;
-
+                String setMeUp = ""+dayInner+"/"+(monthInner+1)+"/"+yearInner;
+                Toast.makeText(DonateBlood.this, setMeUp, Toast.LENGTH_SHORT).show();
                 dateOfDonation.setText(setMeUp);
             }
         }, year, month, day)
@@ -164,11 +165,11 @@ public class DonateBlood extends AppCompatActivity {
                                 hospitalNearBy.setText("");
                                 dateOfDonation.setText("");
                                 reasonForDonation.setText("");
-                                Utils.showSnackBar("Blood Donation Date set", donate_layout, 1);
+                                Utils.showSnackBar(donateBlood.optString("message"), donate_layout, 1);
                                 appointmentsView();
 
                             }else{
-                                Utils.showSnackBar("Blood Donation Set Error", donate_layout, 1);
+                                Utils.showSnackBar(donateBlood.optString("message"), donate_layout, 1);
                                 Log.d(TAG, donateBlood.optString("message"));
                             }
 
@@ -245,7 +246,8 @@ public class DonateBlood extends AppCompatActivity {
                                     donorBloodAdapter.notifyDataSetChanged();
                                     counterRecycler.setAdapter(donorBloodAdapter);
                                 }else {
-                                    Utils.showSnackBar("We faced an error, try again later", donate_layout, 1);
+
+                                    Utils.showSnackBar( donorsNearMe.optString("message"), donate_layout, 1);
                                     Log.d(TAG, donorsNearMe.optString("error") + "   "+ donorsNearMe.optString("message"));
                                 }
                             }

@@ -141,6 +141,7 @@ public class LoginActivity extends AppCompatActivity {
                     Log.d(TAG, "Error: "+error);
                     Utils.showSnackBar("We encounter an error, try again later",login_layout, -1 );
                     progressBarLogin.setVisibility(View.INVISIBLE);
+
                 }
             }){
                 @Override

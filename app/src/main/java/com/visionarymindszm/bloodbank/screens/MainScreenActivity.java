@@ -5,6 +5,7 @@ import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -19,6 +20,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.visionarymindszm.bloodbank.MainActivity;
 import com.visionarymindszm.bloodbank.R;
 import com.visionarymindszm.bloodbank.adapters.PendingAdapter;
 import com.visionarymindszm.bloodbank.models.PendingListModel;
@@ -58,6 +60,10 @@ public class MainScreenActivity extends AppCompatActivity {
 //            donorList.setVisibility(View.GONE);
             String g="Donate Blood";
             donorList_orDonate.setText(g);
+        }
+        if (sharedPreferencesManager.userDetails().get(KEY_TYPE) == null){
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
         }
         pendingCount();
 

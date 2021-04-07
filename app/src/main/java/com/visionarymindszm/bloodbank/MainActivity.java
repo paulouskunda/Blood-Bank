@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SharedPreferencesManager preferencesManager = new SharedPreferencesManager(this);
-        if (preferencesManager.checkLogin()){
+        if (!preferencesManager.checkLogin()){
             startActivity(new Intent(this, MainScreenActivity.class));
             finish();
         }
